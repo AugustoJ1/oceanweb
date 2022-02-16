@@ -1,4 +1,4 @@
-from flask import Flask, g
+from flask import Flask, g, render_template, flash, request, redirect
 import sqlite3
 
 DATABASE = "blog.bd"
@@ -23,4 +23,18 @@ def exibir_entradas():
     sql = "SELECT titulo, texto FROM entradas ORDER BY id desc"
     cur = g.bd.execute(sql)
     entradas = []
-    return str(entradas)
+    for titulo, texto in cur.fetchall():
+        entradas.append({
+            "titulo":titulo,
+            "texto":texto
+        })
+    return render_template("exibir_entradas.html", posts=entradas)
+
+@app.route('/inserir', methods=['POST'])
+def inserir_entrada():
+    sql = "INSERT INTO entradas(titulo, texto) VALUES(?, ?);"
+    titulo = request.form['titulo']
+    texto = request.form['texto']
+    g.bd.execute(sql, [titulo, texto])
+    g.bd.commit()
+    return redirect('/')
